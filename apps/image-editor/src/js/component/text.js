@@ -213,12 +213,22 @@ class Text extends Component {
         originY: 'top',
       });
 
+      var circle = new fabric.Circle({
+        radius: 50,
+        fill: 'yellow',
+      });
+      
+      circle.set(selectionStyle);
       newText.set(selectionStyle);
-      newText.on({
+      var group = new fabric.Group([ circle, text ], {
+        left: circle.left,
+        top: circle.top
+      });
+      group.on({
         mouseup: this._onFabricMouseUp.bind(this),
       });
 
-      canvas.add(newText);
+      canvas.add(group);
 
       if (options.autofocus) {
         newText.enterEditing();
