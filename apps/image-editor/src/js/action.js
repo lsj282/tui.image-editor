@@ -585,12 +585,12 @@ export default {
         const { textColor: fill, fontSize, fontStyle, fontWeight, underline } = this.ui.text;
         const fontFamily = 'Noto Sans';
 
-        this.addText('Double Click', {
-          position: pos.originPosition,
-          styles: { fill, fontSize, fontFamily, fontStyle, fontWeight, underline },
-        }).then(() => {
-          this.changeCursor('default');
-        });
+        // this.addText('Double Click', {
+        //   position: pos.originPosition,
+        //   styles: { fill, fontSize, fontFamily, fontStyle, fontWeight, underline },
+        // }).then(() => {
+        //   this.changeCursor('default');
+        // });
       },
       addObjectAfter: (obj) => {
         if (obj.type === 'icon') {
