@@ -206,6 +206,10 @@ class Text extends Component {
       if (!isExisty(options.autofocus)) {
         options.autofocus = true;
       }
+      const circle = new fabric.Circle({
+        radius: 50,
+        fill: 'yellow',
+      });
 
       newText = new fabric.IText(text, styles);
       selectionStyle = extend({}, selectionStyle, {
@@ -214,23 +218,24 @@ class Text extends Component {
       });
 
       newText.set(selectionStyle);
-      newText.on({
+      circle.set(selectionStyle);
+      const group = new fabric.Group([circle, newText], {
+        left: circle.left,
+        top: circle.top,
+      });
+      group.on({
         mouseup: this._onFabricMouseUp.bind(this),
       });
+      group.selectable = false;
 
-      canvas.add(newText);
-
-      if (options.autofocus) {
-        newText.enterEditing();
-        newText.selectAll();
-      }
+      canvas.add(group);
 
       if (!canvas.getActiveObject()) {
-        canvas.setActiveObject(newText);
+        canvas.setActiveObject(group);
       }
 
       this.isPrevEditing = true;
-      resolve(this.graphics.createObjectProperties(newText));
+      resolve(this.graphics.createObjectProperties(group));
     });
   }
 
