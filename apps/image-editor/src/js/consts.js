@@ -77,7 +77,8 @@ export const componentNames = keyMirror(
   'FILTER',
   'SHAPE',
   'ZOOM',
-  'RESIZE'
+  'RESIZE',
+  'MOVE'
 );
 
 /**
@@ -113,6 +114,7 @@ export const commandNames = {
   LOAD_IMAGE: 'loadImage',
   FLIP_IMAGE: 'flip',
   ROTATE_IMAGE: 'rotate',
+  MOVE_IMAGE: 'move',
   ADD_OBJECT: 'addObject',
   REMOVE_OBJECT: 'removeObject',
   APPLY_FILTER: 'applyFilter',

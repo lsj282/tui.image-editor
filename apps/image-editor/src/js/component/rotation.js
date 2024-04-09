@@ -40,7 +40,7 @@ class Rotation extends Component {
     const canvasImage = this.getCanvasImage();
     const oldImageCenter = canvasImage.getCenterPoint();
     canvasImage.set({ angle }).setCoords();
-    this.adjustCanvasDimension();
+    // this.adjustCanvasDimension();
     const newImageCenter = canvasImage.getCenterPoint();
     this._rotateForEachObject(oldImageCenter, newImageCenter, angle - oldAngle);
 

@@ -43238,7 +43238,7 @@ var filterType = {
  * Component names
  * @type {Object.<string, string>}
  */
-var componentNames = keyMirror('IMAGE_LOADER', 'CROPPER', 'FLIP', 'ROTATION', 'FREE_DRAWING', 'LINE', 'TEXT', 'ICON', 'FILTER', 'SHAPE', 'ZOOM', 'RESIZE');
+var componentNames = keyMirror('IMAGE_LOADER', 'CROPPER', 'FLIP', 'ROTATION', 'FREE_DRAWING', 'LINE', 'TEXT', 'ICON', 'FILTER', 'SHAPE', 'ZOOM', 'RESIZE', 'MOVE');
 
 /**
  * Shape default option
@@ -43273,6 +43273,7 @@ var commandNames = {
   LOAD_IMAGE: 'loadImage',
   FLIP_IMAGE: 'flip',
   ROTATE_IMAGE: 'rotate',
+  MOVE_IMAGE: 'move',
   ADD_OBJECT: 'addObject',
   REMOVE_OBJECT: 'removeObject',
   APPLY_FILTER: 'applyFilter',
@@ -51176,6 +51177,7 @@ var ImageTracer = /*#__PURE__*/function () {
       resize: this._resizeAction(),
       flip: this._flipAction(),
       rotate: this._rotateAction(),
+      move: this._moveAction(),
       text: this._textAction(),
       mask: this._maskAction(),
       draw: this._drawAction(),
@@ -51467,21 +51469,30 @@ var ImageTracer = /*#__PURE__*/function () {
       }
     }, this._commonAction());
   },
+  _moveAction: function _moveAction() {
+    var _this7 = this;
+    return extend_default()({
+      move: function move(distance, direction) {
+        _this7.move(distance, direction);
+        _this7.ui.resizeEditor();
+      }
+    }, this._commonAction());
+  },
   /**
    * Shape Action
    * @returns {Object} actions for ui shape
    * @private
    */
   _shapeAction: function _shapeAction() {
-    var _this7 = this;
+    var _this8 = this;
     return extend_default()({
       changeShape: function changeShape(changeShapeObject, isSilent) {
-        if (_this7.activeObjectId) {
-          _this7.changeShape(_this7.activeObjectId, changeShapeObject, isSilent);
+        if (_this8.activeObjectId) {
+          _this8.changeShape(_this8.activeObjectId, changeShapeObject, isSilent);
         }
       },
       setDrawingShape: function setDrawingShape(shapeType) {
-        _this7.setDrawingShape(shapeType);
+        _this8.setDrawingShape(shapeType);
       }
     }, this._commonAction());
   },
@@ -51491,49 +51502,49 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _cropAction: function _cropAction() {
-    var _this8 = this;
+    var _this9 = this;
     return extend_default()({
       crop: function crop() {
-        var cropRect = _this8.getCropzoneRect();
+        var cropRect = _this9.getCropzoneRect();
         if (cropRect && !isEmptyCropzone(cropRect)) {
-          _this8.crop(cropRect).then(function () {
-            _this8.stopDrawingMode();
-            _this8.ui.resizeEditor();
-            _this8.ui.changeMenu('crop');
-            _this8._invoker.fire(eventNames.EXECUTE_COMMAND, historyNames.CROP);
+          _this9.crop(cropRect).then(function () {
+            _this9.stopDrawingMode();
+            _this9.ui.resizeEditor();
+            _this9.ui.changeMenu('crop');
+            _this9._invoker.fire(eventNames.EXECUTE_COMMAND, historyNames.CROP);
           })['catch'](function (message) {
             return promise_default().reject(message);
           });
         }
       },
       cancel: function cancel() {
-        _this8.stopDrawingMode();
-        _this8.ui.changeMenu('crop');
+        _this9.stopDrawingMode();
+        _this9.ui.changeMenu('crop');
       },
       /* eslint-disable */
       preset: function preset(presetType) {
         switch (presetType) {
           case 'preset-square':
-            _this8.setCropzoneRect(1 / 1);
+            _this9.setCropzoneRect(1 / 1);
             break;
           case 'preset-3-2':
-            _this8.setCropzoneRect(3 / 2);
+            _this9.setCropzoneRect(3 / 2);
             break;
           case 'preset-4-3':
-            _this8.setCropzoneRect(4 / 3);
+            _this9.setCropzoneRect(4 / 3);
             break;
           case 'preset-5-4':
-            _this8.setCropzoneRect(5 / 4);
+            _this9.setCropzoneRect(5 / 4);
             break;
           case 'preset-7-5':
-            _this8.setCropzoneRect(7 / 5);
+            _this9.setCropzoneRect(7 / 5);
             break;
           case 'preset-16-9':
-            _this8.setCropzoneRect(16 / 9);
+            _this9.setCropzoneRect(16 / 9);
             break;
           default:
-            _this8.setCropzoneRect();
-            _this8.ui.crop.changeApplyButtonStatus(false);
+            _this9.setCropzoneRect();
+            _this9.ui.crop.changeApplyButtonStatus(false);
             break;
         }
       }
@@ -51545,13 +51556,13 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _resizeAction: function _resizeAction() {
-    var _this9 = this;
+    var _this10 = this;
     return extend_default()({
       getCurrentDimensions: function getCurrentDimensions() {
-        return _this9._graphics.getCurrentDimensions();
+        return _this10._graphics.getCurrentDimensions();
       },
       preview: function preview(actor, value, lockState) {
-        var currentDimensions = _this9._graphics.getCurrentDimensions();
+        var currentDimensions = _this10._graphics.getCurrentDimensions();
         var calcAspectRatio = function calcAspectRatio() {
           return currentDimensions.width / currentDimensions.height;
         };
@@ -51576,24 +51587,24 @@ var ImageTracer = /*#__PURE__*/function () {
           default:
             dimensions = currentDimensions;
         }
-        _this9._graphics.resize(dimensions).then(function () {
-          _this9.ui.resizeEditor();
+        _this10._graphics.resize(dimensions).then(function () {
+          _this10.ui.resizeEditor();
         });
         if (lockState) {
-          _this9.ui.resize.setWidthValue(dimensions.width);
-          _this9.ui.resize.setHeightValue(dimensions.height);
+          _this10.ui.resize.setWidthValue(dimensions.width);
+          _this10.ui.resize.setHeightValue(dimensions.height);
         }
       },
       lockAspectRatio: function lockAspectRatio(lockState, min, max) {
-        var _this9$_graphics$getC = _this9._graphics.getCurrentDimensions(),
-          width = _this9$_graphics$getC.width,
-          height = _this9$_graphics$getC.height;
+        var _this10$_graphics$get = _this10._graphics.getCurrentDimensions(),
+          width = _this10$_graphics$get.width,
+          height = _this10$_graphics$get.height;
         var aspectRatio = width / height;
         if (lockState) {
           if (width > height) {
             var pMax = max / aspectRatio;
             var pMin = min * aspectRatio;
-            _this9.ui.resize.setLimit({
+            _this10.ui.resize.setLimit({
               minWidth: pMin > min ? pMin : min,
               minHeight: min,
               maxWidth: max,
@@ -51602,7 +51613,7 @@ var ImageTracer = /*#__PURE__*/function () {
           } else {
             var _pMax = max * aspectRatio;
             var _pMin = min / aspectRatio;
-            _this9.ui.resize.setLimit({
+            _this10.ui.resize.setLimit({
               minWidth: min,
               minHeight: _pMin > min ? _pMin : min,
               maxWidth: _pMax < max ? _pMax : max,
@@ -51610,7 +51621,7 @@ var ImageTracer = /*#__PURE__*/function () {
             });
           }
         } else {
-          _this9.ui.resize.setLimit({
+          _this10.ui.resize.setLimit({
             minWidth: min,
             minHeight: min,
             maxWidth: max,
@@ -51621,27 +51632,27 @@ var ImageTracer = /*#__PURE__*/function () {
       resize: function resize() {
         var dimensions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
         if (!dimensions) {
-          dimensions = _this9._graphics.getCurrentDimensions();
+          dimensions = _this10._graphics.getCurrentDimensions();
         }
-        _this9.resize(dimensions).then(function () {
-          _this9._graphics.setOriginalDimensions(dimensions);
-          _this9.stopDrawingMode();
-          _this9.ui.resizeEditor();
-          _this9.ui.changeMenu('resize');
+        _this10.resize(dimensions).then(function () {
+          _this10._graphics.setOriginalDimensions(dimensions);
+          _this10.stopDrawingMode();
+          _this10.ui.resizeEditor();
+          _this10.ui.changeMenu('resize');
         })['catch'](function (message) {
           return promise_default().reject(message);
         });
       },
       reset: function reset() {
         var standByMode = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-        var dimensions = _this9._graphics.getOriginalDimensions();
-        _this9.ui.resize.setWidthValue(dimensions.width, true);
-        _this9.ui.resize.setHeightValue(dimensions.height, true);
-        _this9._graphics.resize(dimensions).then(function () {
+        var dimensions = _this10._graphics.getOriginalDimensions();
+        _this10.ui.resize.setWidthValue(dimensions.width, true);
+        _this10.ui.resize.setHeightValue(dimensions.height, true);
+        _this10._graphics.resize(dimensions).then(function () {
           if (!standByMode) {
-            _this9.stopDrawingMode();
-            _this9.ui.resizeEditor();
-            _this9.ui.changeMenu('resize');
+            _this10.stopDrawingMode();
+            _this10.ui.resizeEditor();
+            _this10.ui.changeMenu('resize');
           }
         });
       }
@@ -51653,10 +51664,10 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _flipAction: function _flipAction() {
-    var _this10 = this;
+    var _this11 = this;
     return extend_default()({
       flip: function flip(flipType) {
-        return _this10[flipType]();
+        return _this11[flipType]();
       }
     }, this._commonAction());
   },
@@ -51666,13 +51677,13 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _filterAction: function _filterAction() {
-    var _this11 = this;
+    var _this12 = this;
     return extend_default()({
       applyFilter: function applyFilter(applying, type, options, isSilent) {
         if (applying) {
-          _this11.applyFilter(type, options, isSilent);
-        } else if (_this11.hasFilter(type)) {
-          _this11.removeFilter(type);
+          _this12.applyFilter(type, options, isSilent);
+        } else if (_this12.hasFilter(type)) {
+          _this12.removeFilter(type);
         }
       }
     }, this._commonAction());
@@ -51681,71 +51692,71 @@ var ImageTracer = /*#__PURE__*/function () {
    * Image Editor Event Observer
    */
   setReAction: function setReAction() {
-    var _this12 = this;
+    var _this13 = this;
     this.on({
       undoStackChanged: function undoStackChanged(length) {
         if (length) {
-          _this12.ui.changeHelpButtonEnabled('undo', true);
-          _this12.ui.changeHelpButtonEnabled('reset', true);
+          _this13.ui.changeHelpButtonEnabled('undo', true);
+          _this13.ui.changeHelpButtonEnabled('reset', true);
         } else {
-          _this12.ui.changeHelpButtonEnabled('undo', false);
-          _this12.ui.changeHelpButtonEnabled('reset', false);
+          _this13.ui.changeHelpButtonEnabled('undo', false);
+          _this13.ui.changeHelpButtonEnabled('reset', false);
         }
-        _this12.ui.resizeEditor();
+        _this13.ui.resizeEditor();
       },
       redoStackChanged: function redoStackChanged(length) {
         if (length) {
-          _this12.ui.changeHelpButtonEnabled('redo', true);
+          _this13.ui.changeHelpButtonEnabled('redo', true);
         } else {
-          _this12.ui.changeHelpButtonEnabled('redo', false);
+          _this13.ui.changeHelpButtonEnabled('redo', false);
         }
-        _this12.ui.resizeEditor();
+        _this13.ui.resizeEditor();
       },
       /* eslint-disable complexity */
       objectActivated: function objectActivated(obj) {
         var _context, _context2;
-        _this12.activeObjectId = obj.id;
-        _this12.ui.changeHelpButtonEnabled('delete', true);
-        _this12.ui.changeHelpButtonEnabled('deleteAll', true);
+        _this13.activeObjectId = obj.id;
+        _this13.ui.changeHelpButtonEnabled('delete', true);
+        _this13.ui.changeHelpButtonEnabled('deleteAll', true);
         if (obj.type === 'cropzone') {
-          _this12.ui.crop.changeApplyButtonStatus(true);
+          _this13.ui.crop.changeApplyButtonStatus(true);
         } else if (index_of_default()(_context = ['rect', 'circle', 'triangle']).call(_context, obj.type) > -1) {
-          _this12.stopDrawingMode();
-          if (_this12.ui.submenu !== 'shape') {
-            _this12.ui.changeMenu('shape', false, false);
+          _this13.stopDrawingMode();
+          if (_this13.ui.submenu !== 'shape') {
+            _this13.ui.changeMenu('shape', false, false);
           }
-          _this12.ui.shape.setShapeStatus({
+          _this13.ui.shape.setShapeStatus({
             strokeColor: obj.stroke,
             strokeWidth: obj.strokeWidth,
             fillColor: fill_default()(obj)
           });
-          _this12.ui.shape.setMaxStrokeValue(Math.min(obj.width, obj.height));
+          _this13.ui.shape.setMaxStrokeValue(Math.min(obj.width, obj.height));
         } else if (obj.type === 'path' || obj.type === 'line') {
-          if (_this12.ui.submenu !== 'draw') {
-            _this12.ui.changeMenu('draw', false, false);
-            _this12.ui.draw.changeStandbyMode();
+          if (_this13.ui.submenu !== 'draw') {
+            _this13.ui.changeMenu('draw', false, false);
+            _this13.ui.draw.changeStandbyMode();
           }
         } else if (index_of_default()(_context2 = ['i-text', 'text']).call(_context2, obj.type) > -1) {
-          if (_this12.ui.submenu !== 'text') {
-            _this12.ui.changeMenu('text', false, false);
+          if (_this13.ui.submenu !== 'text') {
+            _this13.ui.changeMenu('text', false, false);
           }
-          _this12.ui.text.setTextStyleStateOnAction(obj);
+          _this13.ui.text.setTextStyleStateOnAction(obj);
         } else if (obj.type === 'icon') {
-          _this12.stopDrawingMode();
-          if (_this12.ui.submenu !== 'icon') {
-            _this12.ui.changeMenu('icon', false, false);
+          _this13.stopDrawingMode();
+          if (_this13.ui.submenu !== 'icon') {
+            _this13.ui.changeMenu('icon', false, false);
           }
-          _this12.ui.icon.setIconPickerColor(fill_default()(obj));
+          _this13.ui.icon.setIconPickerColor(fill_default()(obj));
         }
       },
       /* eslint-enable complexity */
       addText: function addText(pos) {
-        var _this12$ui$text = _this12.ui.text,
-          fill = _this12$ui$text.textColor,
-          fontSize = _this12$ui$text.fontSize,
-          fontStyle = _this12$ui$text.fontStyle,
-          fontWeight = _this12$ui$text.fontWeight,
-          underline = _this12$ui$text.underline;
+        var _this13$ui$text = _this13.ui.text,
+          fill = _this13$ui$text.textColor,
+          fontSize = _this13$ui$text.fontSize,
+          fontStyle = _this13$ui$text.fontStyle,
+          fontWeight = _this13$ui$text.fontWeight,
+          underline = _this13$ui$text.underline;
         var fontFamily = 'Noto Sans';
 
         // this.addText('Double Click', {
@@ -51758,34 +51769,34 @@ var ImageTracer = /*#__PURE__*/function () {
       addObjectAfter: function addObjectAfter(obj) {
         var _context3;
         if (obj.type === 'icon') {
-          _this12.ui.icon.changeStandbyMode();
+          _this13.ui.icon.changeStandbyMode();
         } else if (index_of_default()(_context3 = ['rect', 'circle', 'triangle']).call(_context3, obj.type) > -1) {
-          _this12.ui.shape.setMaxStrokeValue(Math.min(obj.width, obj.height));
-          _this12.ui.shape.changeStandbyMode();
+          _this13.ui.shape.setMaxStrokeValue(Math.min(obj.width, obj.height));
+          _this13.ui.shape.changeStandbyMode();
         }
       },
       objectScaled: function objectScaled(obj) {
         var _context4, _context5;
         if (index_of_default()(_context4 = ['i-text', 'text']).call(_context4, obj.type) > -1) {
-          _this12.ui.text.fontSize = toInteger(obj.fontSize);
+          _this13.ui.text.fontSize = toInteger(obj.fontSize);
         } else if (index_of_default()(_context5 = ['rect', 'circle', 'triangle']).call(_context5, obj.type) >= 0) {
           var width = obj.width,
             height = obj.height;
-          var strokeValue = _this12.ui.shape.getStrokeValue();
+          var strokeValue = _this13.ui.shape.getStrokeValue();
           if (width < strokeValue) {
-            _this12.ui.shape.setStrokeValue(width);
+            _this13.ui.shape.setStrokeValue(width);
           }
           if (height < strokeValue) {
-            _this12.ui.shape.setStrokeValue(height);
+            _this13.ui.shape.setStrokeValue(height);
           }
         }
       },
       selectionCleared: function selectionCleared() {
-        _this12.activeObjectId = null;
-        if (_this12.ui.submenu === 'text') {
-          _this12.changeCursor('text');
-        } else if (!includes(['draw', 'crop', 'resize'], _this12.ui.submenu)) {
-          _this12.stopDrawingMode();
+        _this13.activeObjectId = null;
+        if (_this13.ui.submenu === 'text') {
+          _this13.changeCursor('text');
+        } else if (!includes(['draw', 'crop', 'resize'], _this13.ui.submenu)) {
+          _this13.stopDrawingMode();
         }
       }
     });
@@ -51796,13 +51807,13 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _historyAction: function _historyAction() {
-    var _this13 = this;
+    var _this14 = this;
     return {
       undo: function undo(count) {
-        return _this13.undo(count);
+        return _this14.undo(count);
       },
       redo: function redo(count) {
-        return _this13.redo(count);
+        return _this14.redo(count);
       }
     };
   },
@@ -51812,7 +51823,7 @@ var ImageTracer = /*#__PURE__*/function () {
    * @private
    */
   _commonAction: function _commonAction() {
-    var _this14 = this,
+    var _this15 = this,
       _context6,
       _context7,
       _context8,
@@ -51826,20 +51837,20 @@ var ImageTracer = /*#__PURE__*/function () {
       modeChange: function modeChange(menu) {
         switch (menu) {
           case drawingMenuNames.TEXT:
-            _this14._changeActivateMode(TEXT);
+            _this15._changeActivateMode(TEXT);
             break;
           case drawingMenuNames.CROP:
-            _this14.startDrawingMode(CROPPER);
+            _this15.startDrawingMode(CROPPER);
             break;
           case drawingMenuNames.SHAPE:
-            _this14._changeActivateMode(SHAPE);
-            _this14.setDrawingShape(_this14.ui.shape.type, _this14.ui.shape.options);
+            _this15._changeActivateMode(SHAPE);
+            _this15.setDrawingShape(_this15.ui.shape.type, _this15.ui.shape.options);
             break;
           case drawingMenuNames.ZOOM:
-            _this14.startDrawingMode(ZOOM);
+            _this15.startDrawingMode(ZOOM);
             break;
           case drawingMenuNames.RESIZE:
-            _this14.startDrawingMode(RESIZE);
+            _this15.startDrawingMode(RESIZE);
             break;
           default:
             break;
@@ -51944,6 +51955,11 @@ var Component = /*#__PURE__*/function () {
     key: "getCanvasImage",
     value: function getCanvasImage() {
       return this.graphics.getCanvasImage();
+    }
+  }, {
+    key: "getCenter",
+    value: function getCenter() {
+      return this.graphics.getCenter();
     }
 
     /**
@@ -53347,7 +53363,7 @@ var Rotation = /*#__PURE__*/function (_Component) {
       canvasImage.set({
         angle: angle
       }).setCoords();
-      this.adjustCanvasDimension();
+      // this.adjustCanvasDimension();
       var newImageCenter = canvasImage.getCenterPoint();
       this._rotateForEachObject(oldImageCenter, newImageCenter, angle - oldAngle);
       return promise_default().resolve(angle);
@@ -53397,6 +53413,69 @@ var Rotation = /*#__PURE__*/function (_Component) {
   return Rotation;
 }(component);
 /* harmony default export */ var rotation = (Rotation);
+;// CONCATENATED MODULE: ./src/js/component/move.js
+
+
+
+
+
+
+
+function move_callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, move_isNativeReflectConstruct() ? construct_default()(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
+function move_isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(construct_default()(Boolean, [], function () {})); } catch (t) {} return (move_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
+
+
+
+/**
+ * Image Rotation component
+ * @class Rotation
+ * @extends {Component}
+ * @param {Graphics} graphics - Graphics instance
+ * @ignore
+ */
+var Move = /*#__PURE__*/function (_Component) {
+  _inherits(Move, _Component);
+  function Move(graphics) {
+    _classCallCheck(this, Move);
+    return move_callSuper(this, Move, [componentNames.MOVE, graphics]);
+  }
+  _createClass(Move, [{
+    key: "_moveForEachObject",
+    value: function _moveForEachObject(deltaX, deltaY) {
+      var canvas = this.getCanvas();
+      canvas.forEachObject(function (obj) {
+        obj.set({
+          left: obj.left + deltaX,
+          top: obj.top + deltaY
+        });
+        obj.setCoords();
+      });
+      canvas.renderAll();
+    }
+  }, {
+    key: "move",
+    value: function move(deltaX, deltaY) {
+      var canvasImage = this.getCanvasImage();
+      canvasImage.set({
+        left: canvasImage.left + deltaX,
+        top: canvasImage.top + deltaY
+      });
+      canvasImage.setCoords();
+
+      // Adjust canvas dimensions
+      // this.adjustCanvasDimension();
+
+      // Move each object on the canvas
+      this._moveForEachObject(deltaX, deltaY);
+      return promise_default().resolve({
+        deltaX: deltaX,
+        deltaY: deltaY
+      });
+    }
+  }]);
+  return Move;
+}(component);
+/* harmony default export */ var move = (Move);
 ;// CONCATENATED MODULE: ./src/js/component/freeDrawing.js
 
 
@@ -53883,10 +53962,6 @@ var Line = /*#__PURE__*/function (_Component) {
 
 
 
-
-
-
-
 function component_text_callSuper(t, o, e) { return o = _getPrototypeOf(o), _possibleConstructorReturn(t, component_text_isNativeReflectConstruct() ? construct_default()(o, e || [], _getPrototypeOf(t).constructor) : o.apply(t, e)); }
 function component_text_isNativeReflectConstruct() { try { var t = !Boolean.prototype.valueOf.call(construct_default()(Boolean, [], function () {})); } catch (t) {} return (component_text_isNativeReflectConstruct = function _isNativeReflectConstruct() { return !!t; })(); }
 
@@ -53894,8 +53969,44 @@ function component_text_isNativeReflectConstruct() { try { var t = !Boolean.prot
 
 
 
+/* eslint-disable no-unused-expressions */
 
 
+
+
+
+
+
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) {
+  var r = w / 2;
+  this.beginPath();
+  this.moveTo(x + r, y);
+  this.arcTo(x + w, y, x + w, y + h, r);
+  this.arcTo(x + w, y + h, x, y + h, r);
+  this.arcTo(x, y + h, x, y, r);
+  this.arcTo(x, y, x + w, y, r);
+  this.closePath();
+  return this;
+};
+fabric.fabric.Text.prototype.set({
+  _getNonTransformedDimensions: function _getNonTransformedDimensions() {
+    // Object dimensions
+    return new fabric.fabric.Point(this.width, this.height).scalarAdd(this.padding);
+  },
+  _calculateCurrentDimensions: function _calculateCurrentDimensions() {
+    // Controls dimensions
+    return fabric.fabric.util.transformPoint(this._getTransformedDimensions(), this.getViewportTransform(), true);
+  },
+  _renderBackground: function _renderBackground(ctx) {
+    var _context;
+    var dim = this._getNonTransformedDimensions();
+    var x = dim.x > dim.y ? dim.x : dim.y;
+    var y = dim.y > dim.x ? dim.y : dim.x;
+    ctx.fillStyle = this.backgroundColor;
+    fill_default()(_context = ctx.roundRect(-x / 2, -y / 2, x, y)).call(_context);
+    this._removeShadow(ctx);
+  }
+});
 var defaultStyles = {
   fill: '#000000',
   left: 0,
@@ -53908,7 +54019,7 @@ var resetStyles = {
   textAlign: 'tie-text-align-left',
   underline: false
 };
-var DBCLICK_TIME = 500;
+var DBCLICK_TIME = 1000;
 
 /**
  * Text
@@ -53920,7 +54031,7 @@ var DBCLICK_TIME = 500;
 var text_Text = /*#__PURE__*/function (_Component) {
   _inherits(Text, _Component);
   function Text(graphics) {
-    var _context, _context2, _context3, _context4, _context5;
+    var _context2, _context3, _context4, _context5, _context6;
     var _this;
     _classCallCheck(this, Text);
     _this = component_text_callSuper(this, Text, [componentNames.TEXT, graphics]);
@@ -53948,17 +54059,18 @@ var text_Text = /*#__PURE__*/function (_Component) {
      * @type {Object}
      */
     _this._editingObj = {};
+    _this.createTime = 0;
 
     /**
      * Listeners for fabric event
      * @type {Object}
      */
     _this._listeners = {
-      mousedown: bind_default()(_context = _this._onFabricMouseDown).call(_context, _assertThisInitialized(_this)),
-      select: bind_default()(_context2 = _this._onFabricSelect).call(_context2, _assertThisInitialized(_this)),
-      selectClear: bind_default()(_context3 = _this._onFabricSelectClear).call(_context3, _assertThisInitialized(_this)),
-      scaling: bind_default()(_context4 = _this._onFabricScaling).call(_context4, _assertThisInitialized(_this)),
-      textChanged: bind_default()(_context5 = _this._onFabricTextChanged).call(_context5, _assertThisInitialized(_this))
+      mousedown: bind_default()(_context2 = _this._onFabricMouseDown).call(_context2, _assertThisInitialized(_this)),
+      select: bind_default()(_context3 = _this._onFabricSelect).call(_context3, _assertThisInitialized(_this)),
+      selectClear: bind_default()(_context4 = _this._onFabricSelectClear).call(_context4, _assertThisInitialized(_this)),
+      scaling: bind_default()(_context5 = _this._onFabricScaling).call(_context5, _assertThisInitialized(_this)),
+      textChanged: bind_default()(_context6 = _this._onFabricTextChanged).call(_context6, _assertThisInitialized(_this))
     };
 
     /**
@@ -54095,7 +54207,7 @@ var text_Text = /*#__PURE__*/function (_Component) {
     value: function add(text, options) {
       var _this4 = this;
       return new (promise_default())(function (resolve) {
-        var _context6;
+        var _context7;
         var canvas = _this4.getCanvas();
         var newText = null;
         var selectionStyle = fObjectOptions.SELECTION_STYLE;
@@ -54107,31 +54219,28 @@ var text_Text = /*#__PURE__*/function (_Component) {
         if (!isExisty_default()(options.autofocus)) {
           options.autofocus = true;
         }
-        var circle = new fabric.fabric.Circle({
-          radius: 50,
-          fill: 'yellow'
-        });
         newText = new fabric.fabric.IText(text, styles);
         selectionStyle = extend_default()({}, selectionStyle, {
-          originX: 'left',
-          originY: 'top'
+          originX: 'center',
+          originY: 'center'
+        });
+        newText.on({
+          mouseup: bind_default()(_context7 = _this4._onFabricMouseUp).call(_context7, _this4)
         });
         newText.set(selectionStyle);
-        circle.set(selectionStyle);
-        var group = new fabric.fabric.Group([circle, newText], {
-          left: circle.left,
-          top: circle.top
-        });
-        group.on({
-          mouseup: bind_default()(_context6 = _this4._onFabricMouseUp).call(_context6, _this4)
-        });
-        group.selectable = false;
-        canvas.add(group);
-        if (!canvas.getActiveObject()) {
-          canvas.setActiveObject(group);
+        canvas.add(newText);
+        if (options.autofocus) {
+          newText.enterEditing();
+          newText.selectAll();
         }
+
+        // if (!canvas.getActiveObject()) {
+        //   canvas.setActiveObject(newText);
+        // }
+
         _this4.isPrevEditing = true;
-        resolve(_this4.graphics.createObjectProperties(group));
+        _this4.createTime = new Date().getTime();
+        resolve(_this4.graphics.createObjectProperties(newText));
       });
     }
 
@@ -54463,12 +54572,15 @@ var text_Text = /*#__PURE__*/function (_Component) {
     value: function _onFabricMouseUp(fEvent) {
       var target = fEvent.target;
       var newClickTime = new Date().getTime();
-      if (this._isDoubleClick(newClickTime) && !target.isEditing) {
-        target.enterEditing();
+      if (this.createTime + 300 < newClickTime) {
+        var canvas = this.getCanvas();
+        canvas.remove(target);
       }
-      if (target.isEditing) {
-        this.fire(eventNames.TEXT_EDITING); // fire editing text event
-      }
+
+      // if (target.isEditing) {
+      //   this.fire(events.TEXT_EDITING); // fire editing text event
+      // }
+
       this._lastClickTime = newClickTime;
     }
 
@@ -57119,7 +57231,8 @@ var Zoom = /*#__PURE__*/function (_Component) {
         rx: verticalScrollBorderRadius,
         ry: verticalScrollBorderRadius
       });
-      this._addScrollBar();
+
+      // this._addScrollBar();
     }
 
     /**
@@ -57174,11 +57287,8 @@ var Zoom = /*#__PURE__*/function (_Component) {
      */
   }, {
     key: "_fireZoomChanged",
-    value: function _fireZoomChanged(canvas, zoomLevel) {
-      canvas.fire(ZOOM_CHANGED, {
-        viewport: canvas.calcViewportBoundaries(),
-        zoomLevel: zoomLevel
-      });
+    value: function _fireZoomChanged() {
+      // canvas.fire(ZOOM_CHANGED, { viewport: canvas.calcViewportBoundaries(), zoomLevel });
     }
 
     /**
@@ -57609,96 +57719,6 @@ var ZoomDrawingMode = /*#__PURE__*/function (_DrawingMode) {
   return ZoomDrawingMode;
 }(drawingMode);
 /* harmony default export */ var drawingMode_zoom = (ZoomDrawingMode);
-;// CONCATENATED MODULE: ./src/js/helper/selectionModifyHelper.js
-
-
-
-
-/**
- * Cached selection's info
- * @type {Array}
- * @private
- */
-var cachedUndoDataForChangeDimension = null;
-
-/**
- * Set cached undo data
- * @param {Array} undoData - selection object
- * @private
- */
-function setCachedUndoDataForDimension(undoData) {
-  cachedUndoDataForChangeDimension = undoData;
-}
-
-/**
- * Get cached undo data
- * @returns {Object} cached undo data
- * @private
- */
-function getCachedUndoDataForDimension() {
-  return cachedUndoDataForChangeDimension;
-}
-
-/**
- * Make undo data
- * @param {fabric.Object} obj - selection object
- * @param {Function} undoDatumMaker - make undo datum
- * @returns {Array} undoData
- * @private
- */
-function makeSelectionUndoData(obj, undoDatumMaker) {
-  var undoData;
-  if (obj.type === 'activeSelection') {
-    var _context;
-    undoData = map_default()(_context = obj.getObjects()).call(_context, function (item) {
-      var angle = item.angle,
-        left = item.left,
-        top = item.top,
-        scaleX = item.scaleX,
-        scaleY = item.scaleY,
-        width = item.width,
-        height = item.height;
-      fabric.fabric.util.addTransformToObject(item, obj.calcTransformMatrix());
-      var result = undoDatumMaker(item);
-      item.set({
-        angle: angle,
-        left: left,
-        top: top,
-        width: width,
-        height: height,
-        scaleX: scaleX,
-        scaleY: scaleY
-      });
-      return result;
-    });
-  } else {
-    undoData = [undoDatumMaker(obj)];
-  }
-  return undoData;
-}
-
-/**
- * Make undo datum
- * @param {number} id - object id
- * @param {fabric.Object} obj - selection object
- * @param {boolean} isSelection - whether or not object is selection
- * @returns {Object} undo datum
- * @private
- */
-function makeSelectionUndoDatum(id, obj, isSelection) {
-  return isSelection ? {
-    id: id,
-    width: obj.width,
-    height: obj.height,
-    top: obj.top,
-    left: obj.left,
-    angle: obj.angle,
-    scaleX: obj.scaleX,
-    scaleY: obj.scaleY
-  } : extend_default()({
-    id: id
-  }, obj);
-}
 ;// CONCATENATED MODULE: ./src/js/component/resize.js
 
 
@@ -57918,6 +57938,11 @@ var ResizeDrawingMode = /*#__PURE__*/function (_DrawingMode) {
 
 
 
+// import {
+//   makeSelectionUndoData,
+//   makeSelectionUndoDatum,
+//   setCachedUndoDataForDimension,
+// } from '@/helper/selectionModifyHelper';
 
 
 
@@ -57946,14 +57971,15 @@ var Graphics = /*#__PURE__*/function () {
     var _context, _context2, _context3, _context4, _context5, _context6, _context7, _context8, _context9, _context10, _context11;
     var _ref = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {},
       cssMaxWidth = _ref.cssMaxWidth,
-      cssMaxHeight = _ref.cssMaxHeight;
+      cssMaxHeight = _ref.cssMaxHeight,
+      startZoom = _ref.startZoom;
     _classCallCheck(this, Graphics);
     /**
      * Fabric image instance
      * @type {fabric.Image}
      */
     this.canvasImage = null;
-
+    this.startZoom = startZoom || 1;
     /**
      * Max width of canvas elements
      * @type {number}
@@ -58517,6 +58543,17 @@ var Graphics = /*#__PURE__*/function () {
       this.adjustCanvasDimensionBase(this.canvasImage.scale(1));
     }
   }, {
+    key: "calculateImageSizeToFitCanvas",
+    value: function calculateImageSizeToFitCanvas(imageWidth, imageHeight, canvasWidth) {
+      var ratio = canvasWidth / imageWidth;
+      var newWidth = canvasWidth;
+      var newHeight = imageHeight * ratio;
+      return {
+        width: newWidth,
+        height: newHeight
+      };
+    }
+  }, {
     key: "adjustCanvasDimensionBase",
     value: function adjustCanvasDimensionBase() {
       var canvasImage = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
@@ -58527,12 +58564,13 @@ var Graphics = /*#__PURE__*/function () {
         width = _canvasImage$getBound.width,
         height = _canvasImage$getBound.height;
       var maxDimension = this._calcMaxDimension(width, height);
+      var nD = this.calculateImageSizeToFitCanvas(maxDimension.width, maxDimension.height, this.cssMaxWidth);
       this.setCanvasCssDimension({
         width: '100%',
         height: '100%',
         // Set height '' for IE9
-        'max-width': "".concat(maxDimension.width, "px"),
-        'max-height': "".concat(maxDimension.height, "px")
+        'max-width': "".concat(this.startZoom ? nD.width * this.startZoom : nD.width, "px"),
+        'max-height': "".concat(this.startZoom ? nD.height * this.startZoom : nD.height, "px")
       });
       this.setCanvasBackstoreDimension({
         width: width,
@@ -58651,6 +58689,11 @@ var Graphics = /*#__PURE__*/function () {
     key: "getCenter",
     value: function getCenter() {
       return this._canvas.getCenter();
+    }
+  }, {
+    key: "getImageCenter",
+    value: function getImageCenter() {
+      return this.getCanvasImage().getCenterPoint();
     }
 
     /**
@@ -58952,7 +58995,8 @@ var Graphics = /*#__PURE__*/function () {
       }
       this._canvas = new fabric.fabric.Canvas(canvasElement, {
         containerClass: 'tui-image-editor-canvas-container',
-        enableRetinaScaling: false
+        enableRetinaScaling: false,
+        imageSmoothingEnabled: false
       });
     }
 
@@ -58984,6 +59028,7 @@ var Graphics = /*#__PURE__*/function () {
       this._register(this._componentMap, new cropper(this));
       this._register(this._componentMap, new component_flip(this));
       this._register(this._componentMap, new rotation(this));
+      this._register(this._componentMap, new move(this));
       this._register(this._componentMap, new freeDrawing(this));
       this._register(this._componentMap, new line(this));
       this._register(this._componentMap, new component_text(this));
@@ -59095,18 +59140,21 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_onMouseDown",
     value: function _onMouseDown(fEvent) {
-      var _this2 = this;
       var event = fEvent.e,
         target = fEvent.target;
       var originPointer = this._canvas.getPointer(event);
       if (target) {
-        var type = target.type;
-        var undoData = makeSelectionUndoData(target, function (item) {
-          return makeSelectionUndoDatum(_this2.getObjectId(item), item, type === 'activeSelection');
-        });
-        setCachedUndoDataForDimension(undoData);
+        var canvas = this._canvas;
+        canvas.remove(target);
+        // const { type } = target;
+        // const undoData = makeSelectionUndoData(target, (item) =>
+        //   makeSelectionUndoDatum(this.getObjectId(item), item, type === 'activeSelection')
+        // );
+
+        // setCachedUndoDataForDimension(undoData);
+      } else {
+        this.fire(eventNames.MOUSE_DOWN, event, originPointer);
       }
-      this.fire(eventNames.MOUSE_DOWN, event, originPointer);
     }
 
     /**
@@ -59144,9 +59192,9 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_onObjectMoved",
     value: function _onObjectMoved(fEvent) {
-      var _this3 = this;
+      var _this2 = this;
       this._lazyFire(eventNames.OBJECT_MOVED, function (object) {
-        return _this3.createObjectProperties(object);
+        return _this2.createObjectProperties(object);
       }, fEvent.target);
     }
 
@@ -59158,9 +59206,9 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_onObjectScaled",
     value: function _onObjectScaled(fEvent) {
-      var _this4 = this;
+      var _this3 = this;
       this._lazyFire(eventNames.OBJECT_SCALED, function (object) {
-        return _this4.createObjectProperties(object);
+        return _this3.createObjectProperties(object);
       }, fEvent.target);
     }
 
@@ -59190,9 +59238,9 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_onObjectRotated",
     value: function _onObjectRotated(fEvent) {
-      var _this5 = this;
+      var _this4 = this;
       this._lazyFire(eventNames.OBJECT_ROTATED, function (object) {
-        return _this5.createObjectProperties(object);
+        return _this4.createObjectProperties(object);
       }, fEvent.target);
     }
 
@@ -59206,12 +59254,12 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_lazyFire",
     value: function _lazyFire(eventName, paramsMaker, target) {
-      var _this6 = this;
+      var _this5 = this;
       var existEventDelegation = target && target.canvasEventDelegation;
       var delegationState = existEventDelegation ? target.canvasEventDelegation(eventName) : 'none';
       if (delegationState === 'unregistered') {
         target.canvasEventRegister(eventName, function (object) {
-          _this6.fire(eventName, paramsMaker(object));
+          _this5.fire(eventName, paramsMaker(object));
         });
       }
       if (delegationState === 'none') {
@@ -59380,7 +59428,7 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "pasteObject",
     value: function pasteObject() {
-      var _this7 = this;
+      var _this6 = this;
       if (!this.targetObjectForCopyPaste) {
         return promise_default().resolve([]);
       }
@@ -59391,13 +59439,13 @@ var Graphics = /*#__PURE__*/function () {
       this.discardSelection();
       return this._cloneObject(targetObjects).then(function (addedObjects) {
         if (addedObjects.length > 1) {
-          newTargetObject = _this7.getActiveSelectionFromObjects(addedObjects);
+          newTargetObject = _this6.getActiveSelectionFromObjects(addedObjects);
         } else {
           var _addedObjects = _slicedToArray(addedObjects, 1);
           newTargetObject = _addedObjects[0];
         }
-        _this7.targetObjectForCopyPaste = newTargetObject;
-        _this7.setActiveObject(newTargetObject);
+        _this6.targetObjectForCopyPaste = newTargetObject;
+        _this6.setActiveObject(newTargetObject);
       });
     }
 
@@ -59410,9 +59458,9 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_cloneObject",
     value: function _cloneObject(targetObjects) {
-      var _this8 = this;
+      var _this7 = this;
       var addedObjects = map_default()(targetObjects).call(targetObjects, function (targetObject) {
-        return _this8._cloneObjectItem(targetObject);
+        return _this7._cloneObjectItem(targetObject);
       });
       return promise_default().all(addedObjects);
     }
@@ -59426,11 +59474,11 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_cloneObjectItem",
     value: function _cloneObjectItem(targetObject) {
-      var _this9 = this;
+      var _this8 = this;
       return this._copyFabricObjectForPaste(targetObject).then(function (clonedObject) {
-        var objectProperties = _this9.createObjectProperties(clonedObject);
-        _this9.add(clonedObject);
-        _this9.fire(eventNames.ADD_OBJECT, objectProperties);
+        var objectProperties = _this8.createObjectProperties(clonedObject);
+        _this8.add(clonedObject);
+        _this8.fire(eventNames.ADD_OBJECT, objectProperties);
         return clonedObject;
       });
     }
@@ -59444,7 +59492,7 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_copyFabricObjectForPaste",
     value: function _copyFabricObjectForPaste(targetObject) {
-      var _this10 = this;
+      var _this9 = this;
       var addExtraPx = function addExtraPx(value, isReverse) {
         return isReverse ? value - EXTRA_PX_FOR_PASTE : value + EXTRA_PX_FOR_PASTE;
       };
@@ -59453,9 +59501,9 @@ var Graphics = /*#__PURE__*/function () {
           top = clonedObject.top,
           width = clonedObject.width,
           height = clonedObject.height;
-        var _this10$getCanvasSize = _this10.getCanvasSize(),
-          canvasWidth = _this10$getCanvasSize.width,
-          canvasHeight = _this10$getCanvasSize.height;
+        var _this9$getCanvasSize = _this9.getCanvasSize(),
+          canvasWidth = _this9$getCanvasSize.width,
+          canvasHeight = _this9$getCanvasSize.height;
         var rightEdge = left + width / 2;
         var bottomEdge = top + height / 2;
         clonedObject.set(extend_default()({
@@ -59475,10 +59523,10 @@ var Graphics = /*#__PURE__*/function () {
   }, {
     key: "_copyFabricObject",
     value: function _copyFabricObject(targetObject) {
-      var _this11 = this;
+      var _this10 = this;
       return new (promise_default())(function (resolve) {
         targetObject.clone(function (cloned) {
-          var shapeComp = _this11.getComponent(componentNames.SHAPE);
+          var shapeComp = _this10.getComponent(componentNames.SHAPE);
           if (isShape(cloned)) {
             shapeComp.processForCopiedObject(cloned, targetObject);
           }
@@ -59536,6 +59584,96 @@ var Graphics = /*#__PURE__*/function () {
 }();
 customEvents_default().mixin(Graphics);
 /* harmony default export */ var graphics = (Graphics);
+;// CONCATENATED MODULE: ./src/js/helper/selectionModifyHelper.js
+
+
+
+
+/**
+ * Cached selection's info
+ * @type {Array}
+ * @private
+ */
+var cachedUndoDataForChangeDimension = null;
+
+/**
+ * Set cached undo data
+ * @param {Array} undoData - selection object
+ * @private
+ */
+function setCachedUndoDataForDimension(undoData) {
+  cachedUndoDataForChangeDimension = undoData;
+}
+
+/**
+ * Get cached undo data
+ * @returns {Object} cached undo data
+ * @private
+ */
+function getCachedUndoDataForDimension() {
+  return cachedUndoDataForChangeDimension;
+}
+
+/**
+ * Make undo data
+ * @param {fabric.Object} obj - selection object
+ * @param {Function} undoDatumMaker - make undo datum
+ * @returns {Array} undoData
+ * @private
+ */
+function makeSelectionUndoData(obj, undoDatumMaker) {
+  var undoData;
+  if (obj.type === 'activeSelection') {
+    var _context;
+    undoData = map_default()(_context = obj.getObjects()).call(_context, function (item) {
+      var angle = item.angle,
+        left = item.left,
+        top = item.top,
+        scaleX = item.scaleX,
+        scaleY = item.scaleY,
+        width = item.width,
+        height = item.height;
+      fabric.fabric.util.addTransformToObject(item, obj.calcTransformMatrix());
+      var result = undoDatumMaker(item);
+      item.set({
+        angle: angle,
+        left: left,
+        top: top,
+        width: width,
+        height: height,
+        scaleX: scaleX,
+        scaleY: scaleY
+      });
+      return result;
+    });
+  } else {
+    undoData = [undoDatumMaker(obj)];
+  }
+  return undoData;
+}
+
+/**
+ * Make undo datum
+ * @param {number} id - object id
+ * @param {fabric.Object} obj - selection object
+ * @param {boolean} isSelection - whether or not object is selection
+ * @returns {Object} undo datum
+ * @private
+ */
+function makeSelectionUndoDatum(id, obj, isSelection) {
+  return isSelection ? {
+    id: id,
+    width: obj.width,
+    height: obj.height,
+    top: obj.top,
+    left: obj.left,
+    angle: obj.angle,
+    scaleX: obj.scaleX,
+    scaleY: obj.scaleY
+  } : extend_default()({
+    id: id
+  }, obj);
+}
 ;// CONCATENATED MODULE: ./src/js/imageEditor.js
 
 
@@ -59733,7 +59871,8 @@ var ImageEditor = /*#__PURE__*/function () {
      */
     this._graphics = new graphics(this.ui ? this.ui.getEditorArea() : wrapper, {
       cssMaxWidth: options.cssMaxWidth,
-      cssMaxHeight: options.cssMaxHeight
+      cssMaxHeight: options.cssMaxHeight,
+      startZoom: options.startZoom
     });
 
     /**
@@ -60582,6 +60721,34 @@ var ImageEditor = /*#__PURE__*/function () {
     value: function setAngle(angle, isSilent) {
       return this._rotate('setAngle', angle, isSilent);
     }
+  }, {
+    key: "_move",
+    value: function _move(type, distance, direction) {
+      return this.executeSilent(commandNames.MOVE_IMAGE, type, distance, direction);
+    }
+
+    /**
+     * Rotate image
+     * @returns {Promise}
+     * @param {number} angle - Additional angle to rotate image
+     * @param {boolean} isSilent - is silent execution or not
+     * @returns {Promise<RotateStatus, ErrorMsg>}
+     * @example
+     * imageEditor.rotate(10); // angle = 10
+     * imageEditor.rotate(10); // angle = 20
+     * imageEditor.rotate(5); // angle = 5
+     * imageEditor.rotate(-95); // angle = -90
+     * imageEditor.rotate(10).then(status => {
+     *     console.log('angle: ', status.angle);
+     * })).catch(message => {
+     *     console.log('error: ', message);
+     * });
+     */
+  }, {
+    key: "move",
+    value: function move(distance, direction) {
+      return this._move('move', distance, direction);
+    }
 
     /**
      * Set drawing brush
@@ -61370,6 +61537,11 @@ var ImageEditor = /*#__PURE__*/function () {
     key: "getCanvasSize",
     value: function getCanvasSize() {
       return this._graphics.getCanvasSize();
+    }
+  }, {
+    key: "getImageCenter",
+    value: function getImageCenter() {
+      return this._graphics.getImageCenter();
     }
 
     /**
@@ -62248,6 +62420,27 @@ var rotate_command = {
 };
 factory_command.register(rotate_command);
 /* harmony default export */ var command_rotate = ((/* unused pure expression or super */ null && (rotate_command)));
+;// CONCATENATED MODULE: ./src/js/command/move.js
+
+
+var MOVE = componentNames.MOVE;
+var move_command = {
+  name: commandNames.MOVE_IMAGE,
+  /**
+   * Rotate an image
+   * @param {Graphics} graphics - Graphics instance
+   * @param {string} type - 'rotate' or 'setAngle'
+   * @param {number} angle - angle value (degree)
+   * @param {boolean} isSilent - is silent execution or not
+   * @returns {Promise}
+   */
+  execute: function execute(graphics, type, distance, direction) {
+    var rotationComp = graphics.getComponent(MOVE);
+    return rotationComp[type](distance, direction);
+  }
+};
+factory_command.register(move_command);
+/* harmony default export */ var command_move = ((/* unused pure expression or super */ null && (move_command)));
 ;// CONCATENATED MODULE: ./src/js/command/setObjectProperties.js
 
 
@@ -62404,6 +62597,7 @@ factory_command.register(resize_command);
 
 
 // commands
+
 
 
 

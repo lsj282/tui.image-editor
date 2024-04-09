@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 import { fabric } from 'fabric';
 import extend from 'tui-code-snippet/object/extend';
 import isExisty from 'tui-code-snippet/type/isExisty';
@@ -5,6 +6,42 @@ import forEach from 'tui-code-snippet/collection/forEach';
 import Component from '@/interface/component';
 import { stamp } from '@/util';
 import { componentNames, eventNames as events, fObjectOptions } from '@/consts';
+
+CanvasRenderingContext2D.prototype.roundRect = function (x, y, w, h) {
+  const r = w / 2;
+  this.beginPath();
+  this.moveTo(x + r, y);
+  this.arcTo(x + w, y, x + w, y + h, r);
+  this.arcTo(x + w, y + h, x, y + h, r);
+  this.arcTo(x, y + h, x, y, r);
+  this.arcTo(x, y, x + w, y, r);
+  this.closePath();
+
+  return this;
+};
+
+fabric.Text.prototype.set({
+  _getNonTransformedDimensions() {
+    // Object dimensions
+    return new fabric.Point(this.width, this.height).scalarAdd(this.padding);
+  },
+  _calculateCurrentDimensions() {
+    // Controls dimensions
+    return fabric.util.transformPoint(
+      this._getTransformedDimensions(),
+      this.getViewportTransform(),
+      true
+    );
+  },
+  _renderBackground(ctx) {
+    const dim = this._getNonTransformedDimensions();
+    const x = dim.x > dim.y ? dim.x : dim.y;
+    const y = dim.y > dim.x ? dim.y : dim.x;
+    ctx.fillStyle = this.backgroundColor;
+    ctx.roundRect(-x / 2, -y / 2, x, y).fill();
+    this._removeShadow(ctx);
+  },
+});
 
 const defaultStyles = {
   fill: '#000000',
@@ -18,7 +55,7 @@ const resetStyles = {
   textAlign: 'tie-text-align-left',
   underline: false,
 };
-const DBCLICK_TIME = 500;
+const DBCLICK_TIME = 1000;
 
 /**
  * Text
@@ -54,6 +91,8 @@ class Text extends Component {
      * @type {Object}
      */
     this._editingObj = {};
+
+    this.createTime = 0;
 
     /**
      * Listeners for fabric event
@@ -206,36 +245,31 @@ class Text extends Component {
       if (!isExisty(options.autofocus)) {
         options.autofocus = true;
       }
-      const circle = new fabric.Circle({
-        radius: 50,
-        fill: 'yellow',
-      });
-
       newText = new fabric.IText(text, styles);
       selectionStyle = extend({}, selectionStyle, {
-        originX: 'left',
-        originY: 'top',
+        originX: 'center',
+        originY: 'center',
+      });
+
+      newText.on({
+        mouseup: this._onFabricMouseUp.bind(this),
       });
 
       newText.set(selectionStyle);
-      circle.set(selectionStyle);
-      const group = new fabric.Group([circle, newText], {
-        left: circle.left,
-        top: circle.top,
-      });
-      group.on({
-        mouseup: this._onFabricMouseUp.bind(this),
-      });
-      group.selectable = false;
+      canvas.add(newText);
 
-      canvas.add(group);
-
-      if (!canvas.getActiveObject()) {
-        canvas.setActiveObject(group);
+      if (options.autofocus) {
+        newText.enterEditing();
+        newText.selectAll();
       }
 
+      // if (!canvas.getActiveObject()) {
+      //   canvas.setActiveObject(newText);
+      // }
+
       this.isPrevEditing = true;
-      resolve(this.graphics.createObjectProperties(group));
+      this.createTime = new Date().getTime();
+      resolve(this.graphics.createObjectProperties(newText));
     });
   }
 
@@ -552,13 +586,14 @@ class Text extends Component {
     const { target } = fEvent;
     const newClickTime = new Date().getTime();
 
-    if (this._isDoubleClick(newClickTime) && !target.isEditing) {
-      target.enterEditing();
+    if (this.createTime + 300 < newClickTime) {
+      const canvas = this.getCanvas();
+      canvas.remove(target);
     }
 
-    if (target.isEditing) {
-      this.fire(events.TEXT_EDITING); // fire editing text event
-    }
+    // if (target.isEditing) {
+    //   this.fire(events.TEXT_EDITING); // fire editing text event
+    // }
 
     this._lastClickTime = newClickTime;
   }

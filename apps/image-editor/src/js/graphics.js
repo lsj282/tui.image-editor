@@ -9,6 +9,7 @@ import ImageLoader from '@/component/imageLoader';
 import Cropper from '@/component/cropper';
 import Flip from '@/component/flip';
 import Rotation from '@/component/rotation';
+import Move from '@/component/move';
 import FreeDrawing from '@/component/freeDrawing';
 import Line from '@/component/line';
 import Text from '@/component/text';
@@ -23,11 +24,11 @@ import ShapeDrawingMode from '@/drawingMode/shape';
 import TextDrawingMode from '@/drawingMode/text';
 import IconDrawingMode from '@/drawingMode/icon';
 import ZoomDrawingMode from '@/drawingMode/zoom';
-import {
-  makeSelectionUndoData,
-  makeSelectionUndoDatum,
-  setCachedUndoDataForDimension,
-} from '@/helper/selectionModifyHelper';
+// import {
+//   makeSelectionUndoData,
+//   makeSelectionUndoDatum,
+//   setCachedUndoDataForDimension,
+// } from '@/helper/selectionModifyHelper';
 import { getProperties, includes, isShape, stamp } from '@/util';
 import {
   componentNames as components,
@@ -59,13 +60,14 @@ const backstoreOnly = {
  * @ignore
  */
 class Graphics {
-  constructor(element, { cssMaxWidth, cssMaxHeight } = {}) {
+  constructor(element, { cssMaxWidth, cssMaxHeight, startZoom } = {}) {
     /**
      * Fabric image instance
      * @type {fabric.Image}
      */
     this.canvasImage = null;
 
+    this.startZoom = startZoom || 1;
     /**
      * Max width of canvas elements
      * @type {number}
@@ -579,6 +581,17 @@ class Graphics {
     this.adjustCanvasDimensionBase(this.canvasImage.scale(1));
   }
 
+  calculateImageSizeToFitCanvas(imageWidth, imageHeight, canvasWidth) {
+    const ratio = canvasWidth / imageWidth;
+    const newWidth = canvasWidth;
+    const newHeight = imageHeight * ratio;
+
+    return {
+      width: newWidth,
+      height: newHeight,
+    };
+  }
+
   adjustCanvasDimensionBase(canvasImage = null) {
     if (!canvasImage) {
       canvasImage = this.canvasImage;
@@ -587,11 +600,17 @@ class Graphics {
     const { width, height } = canvasImage.getBoundingRect();
     const maxDimension = this._calcMaxDimension(width, height);
 
+    const nD = this.calculateImageSizeToFitCanvas(
+      maxDimension.width,
+      maxDimension.height,
+      this.cssMaxWidth
+    );
+
     this.setCanvasCssDimension({
       width: '100%',
       height: '100%', // Set height '' for IE9
-      'max-width': `${maxDimension.width}px`,
-      'max-height': `${maxDimension.height}px`,
+      'max-width': `${this.startZoom ? nD.width * this.startZoom : nD.width}px`,
+      'max-height': `${this.startZoom ? nD.height * this.startZoom : nD.height}px`,
     });
 
     this.setCanvasBackstoreDimension({
@@ -698,6 +717,10 @@ class Graphics {
    */
   getCenter() {
     return this._canvas.getCenter();
+  }
+
+  getImageCenter() {
+    return this.getCanvasImage().getCenterPoint();
   }
 
   /**
@@ -978,6 +1001,7 @@ class Graphics {
     this._canvas = new fabric.Canvas(canvasElement, {
       containerClass: 'tui-image-editor-canvas-container',
       enableRetinaScaling: false,
+      imageSmoothingEnabled: false,
     });
   }
 
@@ -1005,6 +1029,7 @@ class Graphics {
     this._register(this._componentMap, new Cropper(this));
     this._register(this._componentMap, new Flip(this));
     this._register(this._componentMap, new Rotation(this));
+    this._register(this._componentMap, new Move(this));
     this._register(this._componentMap, new FreeDrawing(this));
     this._register(this._componentMap, new Line(this));
     this._register(this._componentMap, new Text(this));
@@ -1112,15 +1137,17 @@ class Graphics {
     const originPointer = this._canvas.getPointer(event);
 
     if (target) {
-      const { type } = target;
-      const undoData = makeSelectionUndoData(target, (item) =>
-        makeSelectionUndoDatum(this.getObjectId(item), item, type === 'activeSelection')
-      );
+      const canvas = this._canvas;
+      canvas.remove(target);
+      // const { type } = target;
+      // const undoData = makeSelectionUndoData(target, (item) =>
+      //   makeSelectionUndoDatum(this.getObjectId(item), item, type === 'activeSelection')
+      // );
 
-      setCachedUndoDataForDimension(undoData);
+      // setCachedUndoDataForDimension(undoData);
+    } else {
+      this.fire(events.MOUSE_DOWN, event, originPointer);
     }
-
-    this.fire(events.MOUSE_DOWN, event, originPointer);
   }
 
   /**

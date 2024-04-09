@@ -17,6 +17,7 @@ export default {
       resize: this._resizeAction(),
       flip: this._flipAction(),
       rotate: this._rotateAction(),
+      move: this._moveAction(),
       text: this._textAction(),
       mask: this._maskAction(),
       draw: this._drawAction(),
@@ -322,6 +323,18 @@ export default {
           this.setAngle(angle, isSilent);
           this.ui.resizeEditor();
           this.ui.rotate.setRangeBarAngle('setAngle', angle);
+        },
+      },
+      this._commonAction()
+    );
+  },
+
+  _moveAction() {
+    return extend(
+      {
+        move: (distance, direction) => {
+          this.move(distance, direction);
+          this.ui.resizeEditor();
         },
       },
       this._commonAction()

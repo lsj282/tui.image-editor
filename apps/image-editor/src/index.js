@@ -20,6 +20,7 @@ import '@/command/removeFilter';
 import '@/command/removeObject';
 import '@/command/resizeCanvasDimension';
 import '@/command/rotate';
+import '@/command/move';
 import '@/command/setObjectProperties';
 import '@/command/setObjectPosition';
 import '@/command/changeSelection';

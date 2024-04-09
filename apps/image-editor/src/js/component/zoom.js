@@ -644,7 +644,7 @@ class Zoom extends Component {
       ry: verticalScrollBorderRadius,
     });
 
-    this._addScrollBar();
+    // this._addScrollBar();
   }
 
   /**
@@ -693,8 +693,8 @@ class Zoom extends Component {
    * @param {fabric.Canvas} canvas - fabric canvas
    * @param {number} zoomLevel - 'zoomChanged' event params
    */
-  _fireZoomChanged(canvas, zoomLevel) {
-    canvas.fire(ZOOM_CHANGED, { viewport: canvas.calcViewportBoundaries(), zoomLevel });
+  _fireZoomChanged() {
+    // canvas.fire(ZOOM_CHANGED, { viewport: canvas.calcViewportBoundaries(), zoomLevel });
   }
 
   /**

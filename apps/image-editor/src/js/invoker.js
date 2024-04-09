@@ -44,7 +44,6 @@ class Invoker {
    */
   _invokeExecution(command, isRedo = false) {
     this.lock();
-
     let { args } = command;
     if (!args) {
       args = [];

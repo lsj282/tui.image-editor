@@ -63,6 +63,10 @@ class Component {
     return this.graphics.getCanvasImage();
   }
 
+  getCenter() {
+    return this.graphics.getCenter();
+  }
+
   /**
    * Get image name
    * @returns {string}

@@ -200,6 +200,7 @@ class ImageEditor {
     this._graphics = new Graphics(this.ui ? this.ui.getEditorArea() : wrapper, {
       cssMaxWidth: options.cssMaxWidth,
       cssMaxHeight: options.cssMaxHeight,
+      startZoom: options.startZoom,
     });
 
     /**
@@ -966,6 +967,31 @@ class ImageEditor {
     return this._rotate('setAngle', angle, isSilent);
   }
 
+  _move(type, distance, direction) {
+    return this.executeSilent(commands.MOVE_IMAGE, type, distance, direction);
+  }
+
+  /**
+   * Rotate image
+   * @returns {Promise}
+   * @param {number} angle - Additional angle to rotate image
+   * @param {boolean} isSilent - is silent execution or not
+   * @returns {Promise<RotateStatus, ErrorMsg>}
+   * @example
+   * imageEditor.rotate(10); // angle = 10
+   * imageEditor.rotate(10); // angle = 20
+   * imageEditor.rotate(5); // angle = 5
+   * imageEditor.rotate(-95); // angle = -90
+   * imageEditor.rotate(10).then(status => {
+   *     console.log('angle: ', status.angle);
+   * })).catch(message => {
+   *     console.log('error: ', message);
+   * });
+   */
+  move(distance, direction) {
+    return this._move('move', distance, direction);
+  }
+
   /**
    * Set drawing brush
    * @param {Object} option brush option
@@ -1692,6 +1718,10 @@ class ImageEditor {
    */
   getCanvasSize() {
     return this._graphics.getCanvasSize();
+  }
+
+  getImageCenter() {
+    return this._graphics.getImageCenter();
   }
 
   /**
